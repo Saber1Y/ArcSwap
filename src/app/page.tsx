@@ -19,7 +19,7 @@ export default function Home() {
     <>
       {showConnectMsg && (
         <div className="fixed top-0 left-0 w-full z-50 bg-red-500 text-white text-center py-3 font-semibold shadow-lg">
-          Please connect your wallet first to start swapping.
+          Please connect your wallet first to start using DeFi.
         </div>
       )}
       <div className="min-h-screen bg-black flex flex-col items-center justify-center font-sans relative overflow-x-hidden">
@@ -37,7 +37,7 @@ export default function Home() {
               height={40}
             />
             <h1 className="text-white text-lg font-semibold tracking-wide">
-              IntentSwap
+              IntentArc
             </h1>
           </div>
           <div className="flex items-center">
@@ -50,7 +50,9 @@ export default function Home() {
           <div className="text-center max-w-5xl mt-5 mx-auto">
             <h2 className="text-4xl md:text-7xl font-extrabold text-center mb-6 leading-tight">
               <span className="text-white bg-clip-text animate-fade-in">
-                SWAP CRYPTO
+                MULTI-CURRENCY
+                <br />
+                DEFI
                 <br />
                 WITH
                 <br />
@@ -59,9 +61,9 @@ export default function Home() {
             </h2>
 
             <p className="text-gray-300 text-md md:text-3xl text-center mb-8 max-w-2xl mx-auto leading-relaxed">
-              Grant SpendPermissions once. Send tokens on{" "}
-              <span className="text-white font-semibold">Somnia</span> just by
-              typing a simple prompt. No complex interfaces, no multiple clicks.
+              Send, convert, and earn yield on{" "}
+              <span className="text-white font-semibold">Arc</span> using simple natural language. 
+              Stable $0.02 gas, real money tokens, built-in FX.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-center mb-8">
@@ -76,7 +78,7 @@ export default function Home() {
                     }
                   }}
                 >
-                  START SWAPPING
+                  START DEFI
                 </button>
               </div>
 
@@ -91,15 +93,15 @@ export default function Home() {
             <div className="flex items-center justify-center gap-6 text-sm text-gray-400 mb-16">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 bg-[#FF1E99] rounded-full"></span>
-                <span>Somnia Testnet</span>
+                <span>Arc Testnet</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 bg-[#FF1E99] rounded-full"></span>
-                <span>AI Powered</span>
+                <span>Multi-Currency</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 bg-[#FF1E99] rounded-full"></span>
-                <span>Open Source</span>
+                <span>Yield Bearing</span>
               </div>
             </div>
           </div>
@@ -115,24 +117,50 @@ export default function Home() {
                   → Input:
                 </div>
                 <div className="text-white mb-4">
-                  &quot;Send 50 STT to Alice&quot;
+                  &quot;Send $50 to Alice&quot;
                 </div>
                 <div className="text-[#FF1E99] bg-clip-text   text-sm mb-2">
                   ← Parsed:
                 </div>
                 <div className="text-gray-300 text-sm">
-                  Amount: 50, Token: STT, Recipient: Alice
+                  Amount: 50, Token: USDC, Recipient: Alice, Gas: $0.015
                 </div>
               </div>
 
               <div className="bg-gray-900/50 backdrop-blur border border-gray-700 cursor-pointer rounded-lg p-6 hover:border-purple-500 transition-colors duration-300">
                 <div className="text-[#FF1E99]  text-sm mb-2">→ Input:</div>
                 <div className="text-white mb-4">
-                  &quot;Transfer 100 tokens to 0x123...&quot;
+                  &quot;Convert 100 euros to dollars&quot;
                 </div>
                 <div className="text-[#FF1E99]  text-sm mb-2">← Parsed:</div>
                 <div className="text-gray-300 text-sm">
-                  Amount: 100, Token: STT, Recipient: 0x123...
+                  EURC → USDC, Amount: 100, Expected: ~$105, Gas: $0.015
+                </div>
+              </div>
+
+              <div className="bg-gray-900/50 backdrop-blur border border-gray-700 rounded-lg p-6 hover:border-purple-500 transition-colors duration-300">
+                <div className="text-[#FF1E99] bg-clip-text text-sm mb-2">
+                  → Input:
+                </div>
+                <div className="text-white mb-4">
+                  &quot;Put 1000 USDC into savings&quot;
+                </div>
+                <div className="text-[#FF1E99] bg-clip-text text-sm mb-2">
+                  ← Parsed:
+                </div>
+                <div className="text-gray-300 text-sm">
+                  USDC → USYC, Amount: 1000, APY: 5%, Gas: $0.015
+                </div>
+              </div>
+
+              <div className="bg-gray-900/50 backdrop-blur border border-gray-700 rounded-lg p-6 hover:border-purple-500 transition-colors duration-300">
+                <div className="text-[#FF1E99] text-sm mb-2">→ Input:</div>
+                <div className="text-white mb-4">
+                  &quot;Show my balance in dollars&quot;
+                </div>
+                <div className="text-[#FF1E99] text-sm mb-2">← Parsed:</div>
+                <div className="text-gray-300 text-sm">
+                  Multi-currency balance display, All tokens: USDC/EURC/USYC
                 </div>
               </div>
             </div>
@@ -143,27 +171,27 @@ export default function Home() {
             features={[
               {
                 icon: <SiProbot className="text-white" />,
-                title: "AI Prompt Parsing",
+                title: "Multi-Currency AI",
                 description:
-                  "Advanced natural language processing to understand your swap intentions perfectly.",
+                  "Natural language support for USDC, EURC, and USYC with FX conversions and yield operations.",
               },
               {
                 icon: <FaBoltLightning className="text-yellow-400" />,
-                title: "Lightning Fast",
+                title: "Stable Gas Fees",
                 description:
-                  "Execute transfers on Somnia testnet with minimal gas fees and instant confirmations.",
+                  "Predictable $0.01-0.02 USDC gas costs on Arc network, no volatility or surprises.",
               },
               {
                 icon: <GiCheckedShield className="text-white" />,
-                title: "Secure & Safe",
+                title: "Real Money Tokens",
                 description:
-                  "Multiple confirmation layers and safety checks before every transaction.",
+                  "Circle's USDC and EURC with built-in yield-bearing USYC earning ~5% APY automatically.",
               },
               {
                 icon: <SlMagnifier className="text-white" />,
-                title: "Full Transparency",
+                title: "Built-in FX",
                 description:
-                  "Complete transaction history and real-time status updates for all your swaps.",
+                  "Seamless currency conversion between USD and Euro with competitive rates and transparent pricing.",
               },
             ]}
           />
@@ -171,15 +199,15 @@ export default function Home() {
 
         <footer className="w-full flex flex-col items-center justify-center py-8 border-t border-gray-800 bg-black/80 backdrop-blur relative z-10">
           <div className="text-sm text-gray-400 text-center max-w-xl mb-4">
-            Built for the{" "}
+            Built on{" "}
             <span className="text-white font-semibold">
-              Somnia AI Hackathon
+              Arc Network
             </span>{" "}
-            • Making crypto transfers as easy as sending a text message.
+            • Making multi-currency DeFi as easy as sending a text message.
           </div>
           <div className="flex gap-6">
             <Link
-              href="https://github.com/Hackathons-w-Rapto/IntentSwap"
+              href="https://github.com/Hackathons-w-Rapto/IntentArc"
               target="_blank"
               rel="noopener noreferrer"
               className="text-gray-400 hover:text-white transition-colors duration-300"

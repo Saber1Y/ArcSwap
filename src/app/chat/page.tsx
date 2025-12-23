@@ -18,7 +18,7 @@ import {
   X,
 } from "lucide-react";
 import { usePrivy } from "@privy-io/react-auth";
-import { TOKEN_ADDRESSES, SOMNIA_CONFIG } from "@/lib/blockchain/config";
+import { TOKEN_ADDRESSES, ARC_CONFIG } from "@/lib/blockchain/config";
 import ConnectWalletButton from "@/components/ConnectWalletButton";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -27,8 +27,11 @@ import { ethers } from "ethers";
 
 declare global {
   interface Window {
-    SpeechRecognition: typeof Function;
-    webkitSpeechRecognition: typeof Function;
+    SpeechRecognition?: typeof Function;
+    webkitSpeechRecognition?: typeof Function;
+  }
+  interface Navigator {
+    onLine: boolean;
   }
 }
 
@@ -100,7 +103,7 @@ interface ISpeechRecognition {
 }
 
 export default function ChatPage() {
-  const Defaulttoken = "STT";
+  const Defaulttoken = "USDC";
   const { authenticated, user } = usePrivy();
   const address = user?.wallet?.address;
   const [messages, setMessages] = useState<Message[]>([]);
@@ -118,11 +121,18 @@ export default function ChatPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [recognition, setRecognition] = useState<any>(null);
   const [speechSupported, setSpeechSupported] = useState(false);
-  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [isOffline, setIsOffline] = useState(false);
   const [unsupportedBrowser, setUnsupportedBrowser] = useState(false);
   const [speechError, setSpeechError] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Initialize offline state only on client side
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.navigator) {
+      setIsOffline(!navigator.onLine);
+    }
+  }, []);
 
   // Generate chat title from first user message
   const generateChatTitle = (firstMessage: string): string => {
@@ -134,7 +144,7 @@ export default function ChatPage() {
   const saveChatSessions = (sessions: ChatSession[]) => {
     try {
       localStorage.setItem(
-        "intentswap_chat_sessions",
+        "intentarc_chat_sessions",
         JSON.stringify(sessions)
       );
     } catch (error) {
@@ -145,7 +155,7 @@ export default function ChatPage() {
   // Load chat sessions from localStorage
   const loadChatSessions = (): ChatSession[] => {
     try {
-      const stored = localStorage.getItem("intentswap_chat_sessions");
+      const stored = localStorage.getItem("intentarc_chat_sessions");
       if (stored) {
         const sessions = JSON.parse(stored) as Array<{
           id: string;
@@ -189,7 +199,7 @@ export default function ChatPage() {
     const welcomeMessage: Message = {
       id: "welcome",
       sender: "agent",
-      text: ' Welcome to IntentSwap! I can help you transfer tokens on Somnia testnet using simple commands. Try saying something like:\n\n• "Send 50 STT to Alice"\n• "Transfer 100 tokens to 0x123..."\n• "Pay Bob 25 STT"',
+      text: ' Welcome to IntentArc! I can help you send, convert, and earn yield with multi-currency DeFi on Arc network using simple commands. Try saying something like:\n\n• "Send $50 to Alice"\n• "Convert 100 euros to dollars"\n• "Put 1000 USDC into savings"\n• "Show my balance in dollars"',
       timestamp: new Date(),
       type: "normal",
     };
@@ -349,10 +359,10 @@ export default function ChatPage() {
       window.ethereum as unknown as ethers.Eip1193Provider
     );
 
-    // Ensure correct network (Somnia Testnet)
+    // Ensure correct network (Arc Testnet)
     const network = await provider.getNetwork();
-    if (Number(network.chainId) !== SOMNIA_CONFIG.chainId) {
-      const chainIdHex = "0x" + SOMNIA_CONFIG.chainId.toString(16);
+    if (Number(network.chainId) !== ARC_CONFIG.chainId) {
+      const chainIdHex = "0x" + ARC_CONFIG.chainId.toString(16);
       try {
         const ethProvider = window.ethereum as unknown as {
           request: (args: {
@@ -381,10 +391,10 @@ export default function ChatPage() {
             params: [
               {
                 chainId: chainIdHex,
-                chainName: SOMNIA_CONFIG.chainName,
-                nativeCurrency: SOMNIA_CONFIG.nativeCurrency,
-                rpcUrls: [SOMNIA_CONFIG.rpcUrl],
-                blockExplorerUrls: [SOMNIA_CONFIG.blockExplorer],
+                chainName: ARC_CONFIG.chainName,
+                nativeCurrency: ARC_CONFIG.nativeCurrency,
+                rpcUrls: [ARC_CONFIG.rpcUrl],
+                blockExplorerUrls: [ARC_CONFIG.blockExplorer],
               },
             ],
           });
@@ -416,8 +426,8 @@ export default function ChatPage() {
       }
     }
 
-    // Handle native token (STT) vs ERC20 token
-    if (token === "STT") {
+    // Handle native token (USDC) vs ERC20 token
+    if (token === "USDC") {
       // Native token transfer
       const amountWei = ethers.parseEther(amount);
       const tx = await signer.sendTransaction({
@@ -486,8 +496,10 @@ export default function ChatPage() {
 
         addMessage({
           sender: "agent",
-          text: `I understand you want to transfer ${data.amount} ${data.token} to ${data.recipient}.
-${balanceText}\n\nPlease confirm the transaction details below:`,
+          text: `I understand you want to send ${data.amount} ${data.token} to ${data.recipient}.
+${balanceText}
+Gas cost: ~$0.015 USDC on Arc network
+Please confirm the transaction details below:`,
           type: "confirmation",
         });
         setPendingConfirmation(data);
@@ -545,10 +557,10 @@ ${balanceText}\n\nPlease confirm the transaction details below:`,
     // Fetch transaction status/receipt
     const txReceipt = await fetchTransaction(txHash);
 
-    addMessage({
-      sender: "agent",
-      text: `Transaction submitted! \n\nYour transfer is being processed on Somnia testnet.`,
-      type: "transaction",
+addMessage({
+          sender: "agent",
+          text: `Transaction submitted! \n\nYour transfer is being processed on Arc network.`,
+          type: "transaction",
       transactionData: {
         ...pendingConfirmation,
         txReciept: txHash,
@@ -594,7 +606,8 @@ ${balanceText}\n\nPlease confirm the transaction details below:`,
   };
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    // Only run on client side
+    if (typeof window !== "undefined" && window.navigator) {
       try {
         const SpeechRecognition =
           window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -734,7 +747,7 @@ ${balanceText}\n\nPlease confirm the transaction details below:`,
           {/* Sidebar Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-700">
             {(showMobileSidebar || !sidebarCollapsed) && (
-              <h2 className="text-lg font-semibold text-white">IntentSwap</h2>
+              <h2 className="text-lg font-semibold text-white">IntentArc</h2>
             )}
 
             {/* Mobile close button */}
@@ -923,7 +936,7 @@ ${balanceText}\n\nPlease confirm the transaction details below:`,
                 </button>
 
                 <h1 className="text-base md:text-lg font-semibold text-white">
-                  IntentSwap
+                  IntentArc
                 </h1>
               </div>
 
@@ -1146,7 +1159,7 @@ ${balanceText}\n\nPlease confirm the transaction details below:`,
                       ? "Unsupported browser. Some features disabled."
                       : isListening
                       ? "Listening... Speak your command"
-                      : "Type your command... (e.g., 'Send 50 STT to Alice')"
+                      : "Type your command... (e.g., 'Send $50 to Alice')"
                   }
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
@@ -1205,9 +1218,9 @@ ${balanceText}\n\nPlease confirm the transaction details below:`,
             {/* Quick Suggestions */}
             <div className="flex md:flex-row-reverse gap-2 justify-center px-4 max-w-4xl mx-auto mt-2">
               {[
-                "Send 50 STT to 0x123.",
-                "Transfer 100 tokens to 0x123.",
-                "Pay 0x123. 25 STT",
+                "Send $50 to Alice",
+                "Convert 100 euros to dollars", 
+                "Put 1000 USDC into savings",
               ].map((suggestion, idx) => (
                 <button
                   key={idx}

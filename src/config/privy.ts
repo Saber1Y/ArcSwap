@@ -1,27 +1,30 @@
 import { type Chain } from "viem";
 
-// Custom chains for Somnia
-export const somniaTestnet: Chain = {
-  id: 50312,
-  name: "Somnia Testnet",
+// Custom chains for Arc
+export const arcTestnet: Chain = {
+  id: 54286,
+  name: "Arc Testnet",
   nativeCurrency: {
-    name: "Somnia Test Token",
-    symbol: "STT",
+    name: "USDC",
+    symbol: "USDC",
     decimals: 18,
   },
   rpcUrls: {
     default: {
-      http: ["https://dream-rpc.somnia.network/"],
+      http: ["https://rpc.testnet.arc.network/"],
     },
   },
   blockExplorers: {
     default: {
-      name: "Somnia Explorer",
-      url: "https://shannon-explorer.somnia.network/",
+      name: "Arc Explorer",
+      url: "https://testnet.arcscan.app",
     },
   },
   testnet: true,
 };
+
+// Legacy export for backward compatibility
+export const somniaTestnet = arcTestnet;
 
 export const anvil: Chain = {
   id: 31337,
@@ -42,7 +45,7 @@ export const anvil: Chain = {
   testnet: true,
 };
 
-export const supportedChains = [somniaTestnet, anvil];
+export const supportedChains = [arcTestnet, anvil];
 
 // Privy App ID
 export const privyAppId = "cmgupofhs02iel10bh531fkvq";

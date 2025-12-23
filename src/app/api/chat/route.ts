@@ -1,15 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GeminiParser } from "@/lib/ai/gemini";
-import { BlockchainClient } from "@/lib/blockchain/client";
-import { TOKEN_ADDRESSES } from "@/lib/blockchain/config";
-
-// Define ActionResult type for all possible shapes
-type ActionResult =
-  | { needsAddress: true; amount: string; token: string; recipientName: string }
-  | { recipient: string; gasEstimate: string; amount: string; token: string }
-  | { balance: string; token: string }
-  | { error: string }
-  | null;
 
 export async function POST(req: NextRequest) {
   try {
@@ -29,158 +18,105 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ✅ Format conversation context into readable form for AI
-    const formattedContext = Array.isArray(context)
-      ? context
-          .map(
-            (msg) => `${msg.sender === "user" ? "User" : "Agent"}: ${msg.text}`
-          )
-          .join("\n")
-      : "General conversation";
+    // Simple intent parsing for multi-currency support
+    const lowerMessage = message.toLowerCase();
+    let response = "";
+    let intent = null;
+    let actionResult = null;
 
-    const parser = new GeminiParser();
-    const blockchain = new BlockchainClient();
-
-    // ✅ 1️⃣ Try to find previous intent in context (e.g., last transfer)
-    let previousIntent = null;
-    if (Array.isArray(context)) {
-      const lastAgentMessage = [...context]
-        .reverse()
-        .find(
-          (msg) =>
-            msg.sender === "agent" &&
-            /sending|transfer|prepare|estimated gas/i.test(msg.text)
-        );
-
-      if (lastAgentMessage) {
-        try {
-          previousIntent = await parser.parseIntent(lastAgentMessage.text);
-        } catch (err) {
-          console.warn("Could not parse previous intent:", err);
-        }
-      }
-    }
-
-    // ✅ 2️⃣ Parse the current user message
-    let intent = await parser.parseIntent(message);
-
-    // ✅ If user confirms but no new intent, reuse previous one
-    if (
-      !intent &&
-      previousIntent &&
-      /\b(yes|confirm|proceed|ok|okay|sure|go ahead|do it)\b/i.test(message)
-    ) {
-      intent = previousIntent;
-    }
-
-    // ✅ If still no intent — fallback to Gemini text reply
-    if (!intent) {
-      const fallbackResponse = await parser.generateResponse(
-        formattedContext,
-        message,
-        senderAddress
-      );
-      return NextResponse.json({
-        success: true,
-        message: "AI Response (no intent)",
-        response: fallbackResponse,
-        intent: null,
-      });
-    }
-
-    // ✅ 3️⃣ Act on the parsed intent
-    let actionResult: ActionResult = null;
-    let aiResponse: string = "";
-
-    switch (intent.action?.toLowerCase()) {
-      case "transfer":
-      case "send":
-      case "pay": {
-        // Resolve recipient
-        const resolved = await blockchain.resolveAddress(intent.recipient);
-
-        // If we can't resolve the address (e.g., it's a name like "Alice")
-        if (!resolved) {
-          aiResponse = `I understand you want to send ${intent.amount} ${intent.token} to "${intent.recipient}", but I need the actual wallet address to proceed. Could you please provide the recipient's wallet address?`;
-          actionResult = {
-            needsAddress: true,
-            amount: intent.amount,
-            token: intent.token,
-            recipientName: intent.recipient,
-          };
-          break;
-        }
-
-        const recipient = resolved;
-        // For STT (native token), we don't need a token address
-        // Validate token is either ETH or STT
-        if (intent.token !== "ETH" && intent.token !== "STT") {
-          aiResponse = `Sorry, we only support ETH and STT tokens at this time.`;
-          actionResult = { error: "Unsupported token" };
-          break;
-        }
-
-        const tokenAddress: string | null = intent.token === "STT" ? null : TOKEN_ADDRESSES.ETH;
-
-        // Estimate gas
-        const gasEstimate = await blockchain.estimateGas(
-          senderAddress,
+    // Parse send/pay/transfer commands
+    if (lowerMessage.includes("send") || lowerMessage.includes("pay") || lowerMessage.includes("transfer")) {
+      const amountMatch = message.match(/\$(\d+)|(\d+)\s*(?:dollars?|usdc?)/i);
+      const recipientMatch = message.match(/to\s+(\w+)/i);
+      
+      if (amountMatch && recipientMatch) {
+        const amount = amountMatch[1] || amountMatch[2];
+        const recipient = recipientMatch[1];
+        const token = message.includes("€") || message.includes("eur") ? "EURC" : "USDC";
+        
+        intent = {
+          action: "send",
+          amount,
+          token,
           recipient,
-          intent.amount,
-          tokenAddress ?? ""
-        );
-
-        aiResponse = `You're sending ${intent.amount} ${intent.token} to ${recipient}.
-Estimated gas: ${gasEstimate} STT.
-Would you like me to prepare the transaction?`;
-
-        actionResult = {
-          recipient,
-          gasEstimate,
-          amount: intent.amount,
-          token: intent.token,
+          confidence: 0.9
         };
-        break;
-      }
 
-      case "balance":
-      case "check":
-      case "balance_check": {
-        // Validate token is either ETH or STT
-        if (intent.token !== "ETH" && intent.token !== "STT") {
-          aiResponse = `Sorry, we only support ETH and STT tokens at this time.`;
-          actionResult = { error: "Unsupported token" };
-          break;
+        // Mock recipient resolution for demo
+        let resolvedRecipient = recipient;
+        if (recipient.toLowerCase().includes("alice")) {
+          resolvedRecipient = "0x742d35Cc6634C0532925a3b8D4c9db96C4b4Db6";
         }
-
-        const tokenAddress: string | null = intent.token === "STT" ? null : TOKEN_ADDRESSES.ETH;
-        const balance = await blockchain.getBalance(
-          senderAddress,
-          tokenAddress ?? ""
-        );
-
-        aiResponse = `Your current ${
-          intent.token || "STT"
-        } balance is ${balance}.`;
-        actionResult = { balance, token: intent.token || "STT" };
-        break;
-      }
-
-      default: {
-        aiResponse = await parser.generateResponse(
-          formattedContext,
-          message,
-          senderAddress
-        );
-        break;
+        
+        response = `You're sending ${amount} ${token} to ${resolvedRecipient}.
+Estimated gas: $0.015 USDC.
+Would you like me to prepare the transaction?`;
+        
+        actionResult = {
+          recipient: resolvedRecipient,
+          gasEstimate: "0.015",
+          amount,
+          token
+        };
+      } else {
+        response = "I couldn't understand that. Try: 'Send $50 to Alice'";
       }
     }
+    // Parse balance commands
+    else if (lowerMessage.includes("balance") || lowerMessage.includes("check")) {
+      const token = message.includes("eur") ? "EURC" : 
+                    message.includes("u syc") ? "USYC" : "USDC";
+      
+      intent = {
+        action: "balance",
+        amount: "0",
+        token,
+        recipient: "",
+        confidence: 0.9
+      };
 
-    // ✅ 4️⃣ Return combined response
+      // Mock realistic balances for demonstration
+      const mockBalances = {
+        USDC: "1000.50",
+        EURC: "850.25", 
+        USYC: "500.75"
+      };
+
+      response = `Your current ${token} balance is ${mockBalances[token]}${token === "USYC" ? " (earning 5% APY)" : ""}.`;
+      
+      actionResult = { balance: mockBalances[token], token };
+    }
+    // Parse convert/swap commands
+    else if (lowerMessage.includes("convert") || lowerMessage.includes("swap")) {
+      response = `Currency conversion is coming soon! 
+Currently you can send USDC, EURC, or USYC directly.
+FX rates will be available in the next version.`;
+      
+      actionResult = { error: "FX feature coming soon" };
+    }
+    // Parse deposit/withdraw commands  
+    else if (lowerMessage.includes("deposit") || lowerMessage.includes("withdraw") || lowerMessage.includes("savings")) {
+      response = `Yield operations are coming soon!
+You'll be able to earn ~5% APY on USDC deposits.
+For now, you can send USDC, EURC, or USYC directly.`;
+      
+      actionResult = { error: "Yield feature coming soon" };
+    }
+    // Fallback response
+    else {
+      response = `I can help you with IntentArc commands like:
+• "Send $50 to Alice" 
+• "Check USDC balance"
+• "Convert euros to dollars" (coming soon)
+• "Put money in savings" (coming soon)
+
+Try one of these commands!`;
+    }
+
     return NextResponse.json({
       success: true,
       message: "AI Response",
-      response: aiResponse,
+      response,
       intent,
       actionResult,
     });

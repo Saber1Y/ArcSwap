@@ -3,7 +3,7 @@ import { TypeAnimation } from "react-type-animation";
 
 export default function AnimatedWordType() {
   return (
-    <span className="bg-gradient-to-r from-[#1E3DFF] via-[#7A1EFF] to-[#FF1E99] bg-clip-text text-transparent animate-gradient text-2xl md:text-7xl font-extrabold">
+    <span className="bg-gradient-to-r from-[#adc5ea] to-[#e3e8e7] bg-clip-text text-transparent animate-gradient text-2xl md:text-7xl font-extrabold">
       JUST -{" "}
       <TypeAnimation
         sequence={["WORDS.", 1500, "VOICE.", 1500]}

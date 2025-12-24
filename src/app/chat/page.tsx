@@ -199,7 +199,7 @@ export default function ChatPage() {
     const welcomeMessage: Message = {
       id: "welcome",
       sender: "agent",
-      text: ' Welcome to IntentArc! I can help you send, convert, and earn yield with multi-currency DeFi on Arc network using simple commands. Try saying something like:\n\n• "Send $50 to Alice"\n• "Convert 100 euros to dollars"\n• "Put 1000 USDC into savings"\n• "Show my balance in dollars"',
+      text: ' Welcome to ArcSwap! I can help you send, convert, and earn yield with multi-currency DeFi on Arc network using simple commands. Try saying something like:\n\n• "Send $50 to Alice"\n• "Convert 100 euros to dollars"\n• "Put 1000 USDC into savings"\n• "Show my balance in dollars"',
       timestamp: new Date(),
       type: "normal",
     };
@@ -711,23 +711,23 @@ addMessage({
 
   return (
     <>
-      <div className="min-h-screen bg-black flex font-sans">
+      <div className="min-h-screen bg-[#102b48] flex font-sans">
         {/* Edge case banners */}
         <div className="fixed top-0 left-0 w-full z-[100] pointer-events-none">
           {isOffline && (
-            <div className="bg-red-700 text-white text-center py-2 font-semibold animate-pulse pointer-events-auto">
+            <div className="bg-red-600 text-white text-center py-2 font-semibold animate-pulse pointer-events-auto">
               You are offline. Some features are disabled until you reconnect.
             </div>
           )}
           {unsupportedBrowser && (
-            <div className="bg-yellow-700 text-white text-center py-2 font-semibold pointer-events-auto">
-              Your browser does not support all features required for IntentSwap
+            <div className="bg-yellow-600 text-white text-center py-2 font-semibold pointer-events-auto">
+              Your browser does not support all features required for ArcSwap
               (e.g., voice input). Please use a modern browser like Chrome or
               Edge.
             </div>
           )}
           {speechError && (
-            <div className="bg-red-800 text-white text-center py-2 font-semibold pointer-events-auto">
+            <div className="bg-red-600 text-white text-center py-2 font-semibold pointer-events-auto">
               {speechError}
             </div>
           )}
@@ -735,7 +735,7 @@ addMessage({
         {/* Sidebar - ChatGPT Style Mobile */}
         <div
           className={cn(
-            "flex flex-col bg-gray-900 border-r border-gray-700 transition-all duration-300 ease-in-out",
+            "flex flex-col bg-[#1a3a52] border-r border-[#e3e8e7]/20 transition-all duration-300 ease-in-out",
 
             "fixed left-0 top-0 min-h-screen z-[60]",
             showMobileSidebar ? "translate-x-0 w-64" : "-translate-x-full w-64",
@@ -745,9 +745,9 @@ addMessage({
           )}
         >
           {/* Sidebar Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-700">
+          <div className="flex items-center justify-between p-4 border-b border-[#e3e8e7]/20">
             {(showMobileSidebar || !sidebarCollapsed) && (
-              <h2 className="text-lg font-semibold text-white">IntentArc</h2>
+              <h2 className="text-lg font-semibold text-[#e3e8e7]">ArcSwap</h2>
             )}
 
             {/* Mobile close button */}
@@ -755,7 +755,7 @@ addMessage({
               variant="ghost"
               size="sm"
               onClick={() => setShowMobileSidebar(false)}
-              className="text-gray-400 hover:text-white hover:bg-gray-800 md:hidden"
+              className="text-[#e3e8e7]/70 hover:text-[#e3e8e7] hover:bg-[#1a3a52] md:hidden"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -765,7 +765,7 @@ addMessage({
               variant="ghost"
               size="sm"
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className="text-gray-400 hover:text-white hover:bg-gray-800 hidden md:flex"
+              className="text-[#e3e8e7]/70 hover:text-[#e3e8e7] hover:bg-[#1a3a52] hidden md:flex"
             >
               {sidebarCollapsed ? (
                 <ChevronRight className="h-4 w-4" />
@@ -781,7 +781,7 @@ addMessage({
               variant="outline"
               onClick={createNewChat}
               className={cn(
-                "w-full justify-start bg-transparent border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white",
+                "w-full justify-start bg-transparent border-[#e3e8e7]/30 text-[#e3e8e7]/80 hover:bg-[#1a3a52] hover:text-[#e3e8e7]",
                 sidebarCollapsed && "md:justify-center md:px-2" // Center icon when collapsed on desktop
               )}
             >
@@ -812,8 +812,8 @@ addMessage({
                 <div
                   key={chat.id}
                   className={cn(
-                    "group relative flex items-center w-full text-left text-gray-300 hover:bg-gray-800 hover:text-white rounded-lg p-3 transition-colors",
-                    currentChatId === chat.id && "bg-gray-800 text-white"
+                    "group relative flex items-center w-full text-left text-[#e3e8e7]/80 hover:bg-[#1a3a52] hover:text-[#e3e8e7] rounded-lg p-3 transition-colors",
+                    currentChatId === chat.id && "bg-[#1a3a52] text-[#e3e8e7]"
                   )}
                 >
                   <div
@@ -827,7 +827,7 @@ addMessage({
                     <MessageSquare className="h-4 w-4 mr-2 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm truncate">{chat.title}</p>
-                      <p className="text-xs text-gray-500 truncate">
+                      <p className="text-xs text-[#e3e8e7]/60 truncate">
                         {chat.timestamp.toLocaleDateString()}
                       </p>
                     </div>
@@ -839,7 +839,7 @@ addMessage({
                       e.stopPropagation();
                       deleteChat(chat.id);
                     }}
-                    className="opacity-0 group-hover:opacity-100 ml-2 h-6 w-6 p-0 text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200"
+                    className="opacity-0 group-hover:opacity-100 ml-2 h-6 w-6 p-0 text-[#e3e8e7]/60 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200"
                     title="Delete chat"
                   >
                     <Trash2 className="h-3 w-3" />
@@ -858,8 +858,8 @@ addMessage({
                     size="sm"
                     onClick={() => switchToChat(chat.id)}
                     className={cn(
-                      "w-full p-2 text-gray-300 hover:bg-gray-800 hover:text-white",
-                      currentChatId === chat.id && "bg-gray-800 text-white"
+                      "w-full p-2 text-[#e3e8e7]/80 hover:bg-[#1a3a52] hover:text-[#e3e8e7]",
+                      currentChatId === chat.id && "bg-[#1a3a52] text-[#e3e8e7]"
                     )}
                   >
                     <MessageSquare className="h-4 w-4" />
@@ -870,11 +870,11 @@ addMessage({
           </div>
 
           {/* Sidebar Footer */}
-          <div className="border-t border-gray-700 p-4 space-y-2">
+          <div className="border-t border-[#e3e8e7]/20 p-4 space-y-2">
             <Button
               variant="ghost"
               className={cn(
-                "w-full justify-start text-gray-300 hover:bg-gray-800 hover:text-white",
+                "w-full justify-start text-[#e3e8e7]/80 hover:bg-[#1a3a52] hover:text-[#e3e8e7]",
                 sidebarCollapsed && "md:px-2"
               )}
             >
@@ -893,7 +893,7 @@ addMessage({
             <Button
               variant="ghost"
               className={cn(
-                "w-full justify-start text-gray-300 hover:bg-gray-800 hover:text-white",
+                "w-full justify-start text-[#e3e8e7]/80 hover:bg-[#1a3a52] hover:text-[#e3e8e7]",
                 sidebarCollapsed && "md:px-2"
               )}
             >
@@ -923,7 +923,7 @@ addMessage({
           )}
         >
           {/* Header */}
-          <header className="backdrop-blur-sm border-b border-gray-800/50 p-3 md:p-4 sticky top-0 z-50 bg-black/80">
+          <header className="backdrop-blur-sm border-b border-[#e3e8e7]/20 p-3 md:p-4 sticky top-0 z-50 bg-[#102b48]/90">
             <div className=" mx-auto w-full flex items-center justify-between">
               {/* Left side - Mobile menu + App name like ChatGPT */}
               <div className="flex items-center gap-3">
@@ -935,17 +935,17 @@ addMessage({
                   <Menu className="h-5 w-5" />
                 </button>
 
-                <h1 className="text-base md:text-lg font-semibold text-white">
-                  IntentArc
+                <h1 className="text-base md:text-lg font-semibold text-[#e3e8e7]">
+                  ArcSwap
                 </h1>
               </div>
 
               {/* Right side - Wallet connection */}
               <div className="flex items-center gap-3">
                 {authenticated ? (
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-[#1E3DFF] via-[#7A1EFF] to-[#FF1E99] shadow-lg hover:shadow-xl hover:shadow-purple-500/25 transition-all duration-300 border border-white/10 backdrop-blur-sm">
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-[#adc5ea] to-[#e3e8e7] shadow-lg hover:shadow-xl hover:shadow-[#adc5ea]/25 transition-all duration-300 border border-[#e3e8e7]/30 backdrop-blur-sm">
                     <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-lg shadow-green-400/50"></span>
-                    <span className="text-xs md:text-sm text-white font-medium block">
+                    <span className="text-xs md:text-sm text-[#102b48] font-medium block">
                       Connected
                     </span>
                   </div>
@@ -975,14 +975,14 @@ addMessage({
                     <div
                       className={`px-3 md:px-6 py-2 md:py-3 rounded-2xl relative text-sm md:text-base ${
                         msg.sender === "user"
-                          ? "bg-gradient-to-r from-[#1E3DFF] via-[#7A1EFF] to-[#FF1E99] text-white"
+                          ? "bg-gradient-to-r from-[#adc5ea] to-[#e3e8e7] text-[#102b48]"
                           : msg.type === "error"
                           ? "bg-red-900/50 border border-red-500 text-white"
                           : msg.type === "confirmation"
                           ? "bg-yellow-900/50 border border-yellow-500 text-white"
                           : msg.type === "transaction"
                           ? "bg-green-900/50 border border-green-500 text-white"
-                          : "bg-gray-900 text-white border border-gray-600"
+                          : "bg-[#1a3a52] text-[#e3e8e7] border border-[#e3e8e7]/30"
                       }`}
                     >
                       <p className="whitespace-pre-line truncate md:truncate-none leading-relaxed ml-1">
@@ -1058,7 +1058,7 @@ addMessage({
 
                     {/* Timestamp */}
                     <p
-                      className={`text-xs text-gray-500 mt-1 ${
+                      className={`text-xs text-[#e3e8e7]/60 mt-1 ${
                         msg.sender === "user" ? "text-right" : "text-left ml-5"
                       }`}
                     >
@@ -1071,15 +1071,15 @@ addMessage({
               {/* Typing indicator */}
               {isTyping && (
                 <div className="flex justify-start">
-                  <div className="bg-gray-800 text-white px-4 py-3 rounded-2xl border border-gray-600">
+                  <div className="bg-[#1a3a52] text-[#e3e8e7] px-4 py-3 rounded-2xl border border-[#e3e8e7]/30">
                     <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-[#e3e8e7]/60 rounded-full animate-bounce"></div>
                       <div
-                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                        className="w-2 h-2 bg-[#e3e8e7]/60 rounded-full animate-bounce"
                         style={{ animationDelay: "0.1s" }}
                       ></div>
                       <div
-                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                        className="w-2 h-2 bg-[#e3e8e7]/60 rounded-full animate-bounce"
                         style={{ animationDelay: "0.2s" }}
                       ></div>
                     </div>
@@ -1102,12 +1102,26 @@ addMessage({
                       {pendingConfirmation?.amount} {pendingConfirmation?.token}
                     </p>
                   </div>
-                  <div className="bg-black/50 p-3 rounded-lg">
-                    <p className="text-gray-400 text-xs md:text-sm">
+<div className="bg-[#1a3a52] p-3 rounded-lg">
+                    <p className="text-[#e3e8e7]/70 text-xs md:text-sm">
+                      Amount
+                    </p>
+                    <p className="text-[#e3e8e7] font-semibold text-sm md:text-base">
+                      {pendingConfirmation?.amount} {pendingConfirmation?.token}
+                    </p>
+                  </div>
+                  <div className="bg-[#1a3a52] p-3 rounded-lg">
+                    <p className="text-[#e3e8e7]/70 text-xs md:text-sm">
                       Recipient
                     </p>
-                    <p className="text-white font-semibold text-xs md:text-sm break-all">
+                    <p className="text-[#e3e8e7] font-semibold text-xs md:text-sm break-all">
                       {pendingConfirmation?.recipient}
+                    </p>
+                  </div>
+                  <div className="bg-[#1a3a52] p-3 rounded-lg">
+                    <p className="text-[#e3e8e7]/70 text-xs md:text-sm">Gas Fee</p>
+                    <p className="text-[#e3e8e7] font-semibold text-sm md:text-base">
+                      {pendingConfirmation?.gasEstimate}
                     </p>
                   </div>
                   <div className="bg-black/50 p-3 rounded-lg">
@@ -1126,7 +1140,7 @@ addMessage({
                   </button>
                   <button
                     onClick={cancelTransaction}
-                    className="flex-1 bg-gray-700 text-white py-2 px-4 rounded-lg font-semibold hover:bg-gray-600 transition-all text-sm md:text-base"
+                    className="flex-1 bg-[#1a3a52] text-[#e3e8e7] py-2 px-4 rounded-lg font-semibold hover:bg-[#2a4a62] transition-all text-sm md:text-base"
                   >
                     Cancel
                   </button>
@@ -1135,7 +1149,7 @@ addMessage({
             )}
           </div>
           {/* Fixed Input Box at Bottom */}
-          <div className="sticky bottom-0 left-0 w-full bg-black/95 z-50 py-4 border-t border-gray-800">
+          <div className="sticky bottom-0 left-0 w-full bg-[#102b48]/95 z-50 py-4 border-t border-[#e3e8e7]/20">
             <div className="flex flex-row gap-3 items-stretch sm:items-center w-full max-w-4xl mx-auto px-4">
               {/* Input Field with Microphone */}
               <div className="flex-1 relative">
@@ -1150,8 +1164,8 @@ addMessage({
                   className={`w-full px-4 py-3 pr-12 rounded-2xl border transition-all text-base ${
                     isListening
                       ? "border-red-400 bg-red-900/20 focus:ring-red-500"
-                      : "border-gray-600 bg-gray-900/50 focus:ring-purple-500"
-                  } text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent`}
+                      : "border-[#e3e8e7]/30 bg-[#1a3a52]/50 focus:ring-[#adc5ea]"
+                  } text-[#e3e8e7] placeholder-[#e3e8e7]/50 focus:outline-none focus:ring-2 focus:border-transparent`}
                   placeholder={
                     isOffline
                       ? "You are offline. Please reconnect."
@@ -1176,8 +1190,8 @@ addMessage({
                     isListening
                       ? "text-red-400 hover:text-red-300 animate-pulse"
                       : speechSupported && !isOffline && !unsupportedBrowser
-                      ? "text-gray-400 hover:text-white"
-                      : "text-gray-600 cursor-not-allowed"
+                      ? "text-[#e3e8e7]/60 hover:text-[#e3e8e7]"
+                      : "text-[#e3e8e7]/30 cursor-not-allowed"
                   }`}
                   type="button"
                   title={
@@ -1209,7 +1223,7 @@ addMessage({
                   isOffline ||
                   unsupportedBrowser
                 }
-                className="px-6 py-3 rounded-2xl font-semibold bg-gradient-to-r from-[#1E3DFF] via-[#7A1EFF] to-[#FF1E99] text-white shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all flex items-center justify-center gap-2 text-base sm:w-auto"
+                className="px-6 py-3 rounded-2xl font-semibold bg-gradient-to-r from-[#adc5ea] to-[#e3e8e7] text-[#102b48] shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all flex items-center justify-center gap-2 text-base sm:w-auto"
               >
                 <Send className="w-4 h-4" />
                 <span>Send</span>
@@ -1225,7 +1239,7 @@ addMessage({
                 <button
                   key={idx}
                   onClick={() => setInput(suggestion)}
-                  className="text-sm px-1.5 py-1.5 bg-gray-800/80 text-gray-300 rounded-full hover:bg-gray-700 hover:text-white transition-all border border-gray-700/50 hover:border-gray-600"
+                  className="text-sm px-1.5 py-1.5 bg-[#1a3a52]/80 text-[#e3e8e7]/80 rounded-full hover:bg-[#2a4a62] hover:text-[#e3e8e7] transition-all border border-[#e3e8e7]/20 hover:border-[#e3e8e7]/40"
                   disabled={
                     isTyping ||
                     !!pendingConfirmation ||

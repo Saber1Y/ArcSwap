@@ -15,17 +15,17 @@ export default function Error({
   }, [error]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-black text-white px-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#102b48] text-[#e3e8e7] px-4">
       <div className="max-w-md w-full text-center">
-        <h1 className="text-4xl font-bold mb-4 text-[#FF1E99]">
+        <h1 className="text-4xl font-bold mb-4 text-[#adc5ea]">
           Oops! Something went wrong.
         </h1>
-        <p className="text-lg mb-6 text-gray-300">
+        <p className="text-lg mb-6 text-[#e3e8e7]/80">
           We couldn&#39;t process your request. Please try again, check your
           internet connection, or contact support if the problem persists.
         </p>
         <button
-          className="px-6 py-3 rounded-xl font-semibold bg-gradient-to-r from-[#1E3DFF] via-[#7A1EFF] to-[#FF1E99] text-white shadow-lg hover:scale-105 transition-transform"
+          className="px-6 py-3 rounded-xl font-semibold bg-gradient-to-r from-[#adc5ea] to-[#e3e8e7] text-[#102b48] shadow-lg hover:scale-105 transition-transform"
           onClick={() => reset()}
         >
           Try Again

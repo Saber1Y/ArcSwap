@@ -211,11 +211,11 @@ Try: "Deposit 100 USDC to savings" or "Withdraw 50 USYC"`;
     }
     // Fallback response
     else {
-      response = `I can help you with IntentArc commands like:
+response = `I can help you with ArcSwap commands like:
 • "Send $50 to Alice" 
 • "Check USDC balance"
-• "Convert 100 USDC to EURC"
-• "Deposit 100 USDC to savings"
+• "Convert euros to dollars" (coming soon)
+• "Put money in savings" (coming soon)
 
 Try one of these commands!`;
     }

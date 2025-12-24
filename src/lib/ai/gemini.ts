@@ -158,7 +158,7 @@ export class GeminiParser {
     }
     try {
       const prompt = `
-  You are an IntentArc transaction parser for multi-currency DeFi operations. Parse the following message and extract transaction details.
+  You are an ArcSwap transaction parser for multi-currency DeFi operations. Parse the following message and extract transaction details.
   
   User message: "${userMessage}"
   

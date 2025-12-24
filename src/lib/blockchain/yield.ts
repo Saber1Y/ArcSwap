@@ -37,21 +37,32 @@ const USYC_ABI = [
 ];
 
 export class YieldManager {
-  private blockchain: BlockchainClient;
+  private blockchain: BlockchainClient | null = null;
   private usycContract: ethers.Contract | null = null;
 
   constructor() {
-    this.blockchain = new BlockchainClient();
-    
-    // Initialize USYC contract
-    try {
-      this.usycContract = new ethers.Contract(
-        TOKEN_ADDRESSES.USYC,
-        USYC_ABI,
-        this.blockchain.getProvider()
-      );
-    } catch (error) {
-      console.error("Failed to initialize USYC contract:", error);
+    // Don't initialize in constructor to avoid circular dependency
+    // Initialize lazily when needed
+  }
+
+  private getBlockchain(): BlockchainClient {
+    if (!this.blockchain) {
+      this.blockchain = new BlockchainClient();
+    }
+    return this.blockchain;
+  }
+
+  private initializeContract() {
+    if (!this.usycContract && this.blockchain) {
+      try {
+        this.usycContract = new ethers.Contract(
+          TOKEN_ADDRESSES.USYC,
+          USYC_ABI,
+          this.blockchain.getProvider()
+        );
+      } catch (error) {
+        console.error("Failed to initialize USYC contract:", error);
+      }
     }
   }
 
@@ -63,6 +74,7 @@ export class YieldManager {
     userAddress: string
   ): Promise<DepositTransaction> {
     try {
+      this.initializeContract();
       if (!this.usycContract) {
         throw new Error("USYC contract not initialized");
       }
@@ -98,6 +110,7 @@ export class YieldManager {
     userAddress: string
   ): Promise<WithdrawTransaction> {
     try {
+      this.initializeContract();
       if (!this.usycContract) {
         throw new Error("USYC contract not initialized");
       }
@@ -131,6 +144,7 @@ export class YieldManager {
    */
   async getYieldInfo(userAddress: string): Promise<YieldInfo> {
     try {
+      this.initializeContract();
       if (!this.usycContract) {
         // Return mock data if contract not available
         return {
@@ -170,6 +184,7 @@ export class YieldManager {
    */
   async getCurrentAPY(): Promise<number> {
     try {
+      this.initializeContract();
       if (!this.usycContract) {
         return 5.0; // Fallback APY
       }
@@ -230,7 +245,8 @@ export class YieldManager {
    */
   async hasSufficientUSDC(userAddress: string, amount: string): Promise<boolean> {
     try {
-      const balance = await this.blockchain.getBalance(
+      const blockchain = this.getBlockchain();
+      const balance = await blockchain.getBalance(
         userAddress,
         undefined // USDC is native token
       );
@@ -246,7 +262,8 @@ export class YieldManager {
    */
   async hasSufficientUSYC(userAddress: string, amount: string): Promise<boolean> {
     try {
-      const balance = await this.blockchain.getBalance(
+      const blockchain = this.getBlockchain();
+      const balance = await blockchain.getBalance(
         userAddress,
         TOKEN_ADDRESSES.USYC
       );

@@ -476,8 +476,8 @@ export default function ChatPage() {
     try {
       const response = await fetchIntentResponse(userInput, [...messages]);
       setIsTyping(false);
-      // Interpret API response shape
-      if (response?.success && response?.intent && response?.actionResult) {
+// Interpret API response shape
+      if (response?.success && response?.intent?.action === "send" && response?.actionResult?.recipient) {
         const data: TransactionConfirmation = {
           amount: response.intent.amount,
           token: response.intent.token || Defaulttoken,
@@ -499,7 +499,7 @@ export default function ChatPage() {
           text: `I understand you want to send ${data.amount} ${data.token} to ${data.recipient}.
 ${balanceText}
 Gas cost: ~$0.015 USDC on Arc network
-Please confirm the transaction details below:`,
+Please confirm transaction details below:`,
           type: "confirmation",
         });
         setPendingConfirmation(data);

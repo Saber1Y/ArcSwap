@@ -8,17 +8,38 @@ export class BlockchainClient {
   private fxEngine: FXEngine;
   private yieldManager: YieldManager;
 
+  private static providerInstance: ethers.JsonRpcProvider | null = null;
+  private static fxEngineInstance: FXEngine | null = null;
+  private static yieldManagerInstance: YieldManager | null = null;
+
   constructor() {
-    try {
-      this.provider = new ethers.JsonRpcProvider(ARC_CONFIG.rpcUrl);
-    } catch (error) {
-      console.error("Failed to initialize provider:", error);
-      // Fallback for testing
-      this.provider = new ethers.JsonRpcProvider("https://rpc.testnet.arc.network");
+    // Use singleton pattern to avoid circular dependencies
+    if (!BlockchainClient.providerInstance) {
+      const rpcUrl = ARC_CONFIG.rpcUrl || "https://rpc.testnet.arc.network";
+      
+      try {
+        BlockchainClient.providerInstance = new ethers.JsonRpcProvider(rpcUrl, {
+          chainId: ARC_CONFIG.chainId,
+          name: ARC_CONFIG.chainName,
+        });
+      } catch (error) {
+        console.error("Failed to initialize provider:", error);
+        BlockchainClient.providerInstance = new ethers.JsonRpcProvider(rpcUrl);
+      }
     }
     
-    this.fxEngine = new FXEngine();
-    this.yieldManager = new YieldManager();
+    this.provider = BlockchainClient.providerInstance;
+
+    // Initialize engines without creating new BlockchainClient instances
+    if (!BlockchainClient.fxEngineInstance) {
+      BlockchainClient.fxEngineInstance = new FXEngine();
+    }
+    if (!BlockchainClient.yieldManagerInstance) {
+      BlockchainClient.yieldManagerInstance = new YieldManager();
+    }
+    
+    this.fxEngine = BlockchainClient.fxEngineInstance;
+    this.yieldManager = BlockchainClient.yieldManagerInstance;
   }
 
   getProvider() {
@@ -33,18 +54,29 @@ export class BlockchainClient {
     try {
       if (!tokenAddress || tokenAddress === TOKEN_ADDRESSES.USDC || tokenAddress === TOKEN_ADDRESSES.ETH) {
         // Get native balance (USDC on Arc)
-        const balance = await this.provider.getBalance(address);
+        const balance = await Promise.race([
+          this.provider.getBalance(address),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error("RPC timeout")), 10000)
+          )
+        ]) as bigint;
         return ethers.formatEther(balance);
       }
-      
-      // ERC20 token balance - check if tokenAddress matches known ERC20 token addresses
-      if (tokenAddress && (tokenAddress.toLowerCase() === TOKEN_ADDRESSES.EURC.toLowerCase() || tokenAddress.toLowerCase() === TOKEN_ADDRESSES.USYC.toLowerCase())) {
+
+      if (tokenAddress && (
+        tokenAddress.toLowerCase() === TOKEN_ADDRESSES.EURC.toLowerCase() ||
+        tokenAddress.toLowerCase() === TOKEN_ADDRESSES.USYC.toLowerCase()
+      )) {
         const contract = new ethers.Contract(tokenAddress, ERC20_ABI, this.provider);
-        const balance = await contract.balanceOf(address);
-        const decimals = await contract.decimals();
+        const [balance, decimals] = await Promise.race([
+          Promise.all([contract.balanceOf(address), contract.decimals()]),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error("RPC timeout")), 10000)
+          )
+        ]) as [bigint, number];
         return ethers.formatUnits(balance, decimals);
       }
-      
+
       throw new Error("Unsupported token");
     } catch (error) {
       console.error("Error getting balance:", error);
@@ -59,44 +91,63 @@ export class BlockchainClient {
     tokenAddress?: string
   ): Promise<string> {
     try {
-      if (!tokenAddress || tokenAddress === TOKEN_ADDRESSES.USDC || tokenAddress === TOKEN_ADDRESSES.ETH) {
+      if (
+        !tokenAddress ||
+        tokenAddress === TOKEN_ADDRESSES.USDC ||
+        tokenAddress === TOKEN_ADDRESSES.ETH
+      ) {
         // Native token transfer (USDC on Arc)
         const amountWei = ethers.parseEther(amount);
-        const gasEstimate = await this.provider.estimateGas({
-          from,
-          to,
-          value: amountWei,
-        });
+        const gasEstimate = await Promise.race([
+          this.provider.estimateGas({ from, to, value: amountWei }),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error("RPC timeout")), 10000)
+          )
+        ]) as bigint;
 
-        const feeData = await this.provider.getFeeData();
-        const pricePerGas =
-          feeData.gasPrice ?? feeData.maxFeePerGas ?? BigInt(0);
-
-        const totalCostWei = gasEstimate * pricePerGas;
-        const gasInUSDC = ethers.formatEther(totalCostWei);
+        const feeData = await Promise.race([
+          this.provider.getFeeData(),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error("RPC timeout")), 10000)
+          )
+        ]) as ethers.FeeData;
         
-        // Arc has stable gas fees - return as USDC amount
-        return gasInUSDC;
-      } else if (tokenAddress && (tokenAddress.toLowerCase() === TOKEN_ADDRESSES.EURC.toLowerCase() || tokenAddress.toLowerCase() === TOKEN_ADDRESSES.USYC.toLowerCase())) {
+        const pricePerGas = feeData.gasPrice ?? feeData.maxFeePerGas ?? BigInt(0);
+        const totalCostWei = gasEstimate * pricePerGas;
+        return ethers.formatEther(totalCostWei);
+      } else if (
+        tokenAddress &&
+        (tokenAddress.toLowerCase() === TOKEN_ADDRESSES.EURC.toLowerCase() ||
+          tokenAddress.toLowerCase() === TOKEN_ADDRESSES.USYC.toLowerCase())
+      ) {
         // ERC20 token transfer
         const contract = new ethers.Contract(tokenAddress, ERC20_ABI, this.provider);
         const decimals = await contract.decimals();
         const amountWei = ethers.parseUnits(amount, decimals);
+
+        const gasEstimate = await Promise.race([
+          contract.transfer.estimateGas(to, amountWei),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error("RPC timeout")), 10000)
+          )
+        ]) as bigint;
+
+        const feeData = await Promise.race([
+          this.provider.getFeeData(),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error("RPC timeout")), 10000)
+          )
+        ]) as ethers.FeeData;
         
-        const gasEstimate = await contract.transfer.estimateGas(to, amountWei);
-        
-        const feeData = await this.provider.getFeeData();
         const pricePerGas = feeData.gasPrice ?? feeData.maxFeePerGas ?? BigInt(0);
-        
         const totalCostWei = gasEstimate * pricePerGas;
         return ethers.formatEther(totalCostWei);
       }
-      
+
       throw new Error("Unsupported token for gas estimation");
     } catch (error) {
       console.error("Error estimating gas:", error);
-      // Arc has stable gas fees - return default estimate
-      return "0.015"; // Fallback estimate
+      return "0.015"; // Fallback estimate for Arc network
     }
   }
 
@@ -105,13 +156,23 @@ export class BlockchainClient {
     confirmations: number;
   }> {
     try {
-      const receipt = await this.provider.getTransactionReceipt(txHash);
+      const receipt = await Promise.race([
+        this.provider.getTransactionReceipt(txHash),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error("RPC timeout")), 10000)
+        )
+      ]);
 
       if (!receipt) {
         return { status: "pending", confirmations: 0 };
       }
 
-      const currentBlock = await this.provider.getBlockNumber();
+      const currentBlock = await Promise.race([
+        this.provider.getBlockNumber(),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error("RPC timeout")), 10000)
+        )
+      ]);
       const confirmations = currentBlock - receipt.blockNumber;
 
       return {
@@ -131,9 +192,22 @@ export class BlockchainClient {
         return nameOrAddress;
       }
 
-      // For names (like "Alice", "Bob"), we cannot resolve them automatically
-      // The AI should ask the user for the actual address
-      // This will trigger the error handling in the frontend to ask for clarification
+      // For ENS names or other resolvable domains
+      try {
+        const resolvedAddress = await Promise.race([
+          this.provider.resolveName(nameOrAddress),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error("Resolution timeout")), 10000)
+          )
+        ]);
+        if (resolvedAddress && ethers.isAddress(resolvedAddress)) {
+          return resolvedAddress;
+        }
+      } catch (resolutionError) {
+        console.log("Name resolution failed:", resolutionError);
+      }
+
+      // If not resolvable, return null
       return null;
     } catch (error) {
       console.error("Error resolving address:", error);
@@ -214,16 +288,16 @@ export class BlockchainClient {
   async getAllBalances(address: string): Promise<{ [key: string]: string }> {
     try {
       const balances: { [key: string]: string } = {};
-      
+
       // Get USDC balance (native)
       balances.USDC = await this.getBalance(address);
-      
+
       // Get EURC balance
       balances.EURC = await this.getBalance(address, TOKEN_ADDRESSES.EURC);
-      
+
       // Get USYC balance
       balances.USYC = await this.getBalance(address, TOKEN_ADDRESSES.USYC);
-      
+
       return balances;
     } catch (error) {
       console.error("Error getting all balances:", error);

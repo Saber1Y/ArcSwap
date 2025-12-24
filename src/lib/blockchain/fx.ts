@@ -20,10 +20,18 @@ export interface FXTransaction {
 }
 
 export class FXEngine {
-  private blockchain: BlockchainClient;
+  private blockchain: BlockchainClient | null = null;
 
   constructor() {
-    this.blockchain = new BlockchainClient();
+    // Don't initialize in constructor to avoid circular dependency
+    // Initialize lazily when needed
+  }
+
+  private getBlockchain(): BlockchainClient {
+    if (!this.blockchain) {
+      this.blockchain = new BlockchainClient();
+    }
+    return this.blockchain;
   }
 
   /**
@@ -106,7 +114,8 @@ export class FXEngine {
       
       // In reality, this would call a DEX contract
       // For now, simulate the transaction
-      const gasEstimate = await this.blockchain.estimateGas(
+      const blockchain = this.getBlockchain();
+      const gasEstimate = await blockchain.estimateGas(
         userAddress,
         TOKEN_ADDRESSES[toToken as keyof typeof TOKEN_ADDRESSES],
         amount,
